@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<!-- DICHIARAZIONE DEL DOCTYPE: indica al browser che il documento usa HTML5. -->
+
+
+<html lang="it">
+<!-- APRE IL TAG HTML e imposta l'attributo lang="it" per indicare che la pagina è in italiano. -->
+
+
+    <head>
+        <!-- INIZIO DELLA SEZIONE HEAD: contiene metadati, titolo e stili. -->
+
+
+        <meta charset="UTF-8">
+        <!-- DICHIARA la codifica dei caratteri UTF-8 per corretta visualizzazione dei caratteri speciali. -->
+
+
+        <title>Indovina il numero</title>
+        <!-- IMPOSTA il titolo della pagina mostrato nella tab del browser. -->
+
+
+        <style>
+        /* INIZIO BLOCCO CSS: regole di stile interne alla pagina. */
+
+
+            body {
+            /* SELEZIONE di 'body' per applicare stili all'intera pagina. */
+                font-family: Arial, sans-serif;
+                /* IMPOSTA il font primario e fallback. */
+                text-align: center;
+                /* CENTRA orizzontalmente il testo all'interno del body. */
+                margin-top: 40px;
+                /* AGGIUNGE spazio sopra il contenuto (margine superiore). */
+                background-color: aqua;
+            }
+
+
+            #container {
+            /* SELEZIONA l'elemento con id "container" (contenitore principale del gioco). */
+                max-width: 400px;
+                /* LARGHEZZA massima del contenitore. */
+                margin: 400px 400px 400px 1000px;
+                /* CENTRA il contenitore orizzontalmente (margine automatico). */
+                border: 1px solid #ccc;
+                /* BORDO sottile e grigio intorno al contenitore. */
+                padding: 50px;
+                /* SPAZIATURA interna del contenitore. */
+                border-radius: 8px;
+                /* ANGOLI arrotondati del contenitore. */
+                background-color: chartreuse;
+                text-align: center;
+
+
+            }
+
+
+            input, button {
+            /* STILE comune per elementi input e button. */
+                padding: 6px 10px;
+                /* PADDING interno per rendere cliccabili gli elementi. */
+                margin: 5px;
+                /* MARGINE esterno per separare gli elementi tra loro. */
+            }
+
+
+            ul {
+            /* SELEZIONA gli elementi <ul> (lista) per stile. */
+                text-align: left;
+                /* ALLINEA il testo della lista a sinistra (utile dentro container centrato). */
+            }
+        </style>
+        <!-- FINE BLOCCO CSS. -->
+    </head>
+
+
+    <body>
+        <!-- INIZIO DEL BODY: contenuto visibile della pagina. -->
+
+
+        <div id="container">
+        <!-- DIV principale con id 'container' che avvolge tutto il gioco. -->
+
+
+            <h1>Indovina il numero</h1>
+            <!-- INTESTAZIONE principale del gioco (titolo visibile). -->
+           
+            <p id="message">
+            <!-- PARAGRAFO con id 'message' usato per mostrare messaggi dinamici all'utente. -->
+                Ho pensato a un numero tra 1 e 100.<br>Prova a indovinarlo!
+                <!-- Testo iniziale visualizzato dentro il paragrafo message; include un <br> per andare a capo. -->
+            </p>
+           
+            <input type="number" id="guessInput" placeholder="Inserisci un numero">
+            <!-- CAMPO INPUT di tipo number con id 'guessInput' e placeholder che invita l'utente a inserire un numero. -->
+            <button id="guessBtn">Prova</button>
+            <!-- PULSANTE con id 'guessBtn' usato per inviare il tentativo (etichetta 'Prova'). -->
+            <button id="resetBtn">Nuova partita</button>
+            <!-- PULSANTE con id 'resetBtn' per resettare/riavviare la partita. -->
+
+
+            <p>Tentativi: <span id="attemptsCount">0</span></p>
+            <!-- PARAGRAFO che mostra il contatore dei tentativi; lo span con id 'attemptsCount' contiene il numero. -->
+
+
+            <h3>Storico tentativi</h3>
+            <!-- INTTESTAZIONE secondaria per la lista dei tentativi. -->
+           
+            <ul id="historyList"></ul>
+            <!-- LISTA NON ORDINATA che verrà popolata dinamicamente con i tentativi (id 'historyList'). -->
+           
+        </div>
+        <!-- CHIUSURA DEL CONTAINER. -->
+
+
+        <script>
+        /* INIZIO SCRIPT JAVASCRIPT: logica del gioco. */
+
+
+            const MIN = 1;
+            // COSTANTE MIN: valore minimo consentito per il numero segreto.
+
+
+            const MAX = 100;
+            // COSTANTE MAX: valore massimo consentito per il numero segreto.
+
+
+            const MAX_ATTEMPTS = 10;
+            // COSTANTE MAX_ATTEMPTS: numero massimo di tentativi permessi prima della sconfitta.
+
+
+            let secretNumber;
+            // VARIABILE 'secretNumber' che conterrà il numero generato casualmente.
+
+
+            let attempts;
+            // VARIABILE 'attempts' che tiene traccia di quanti tentativi sono stati fatti.
+
+
+            var guessesHistory = [];
+            // ARRAY 'guessesHistory' che memorizza ogni tentativo effettuato (ordine cronologico).
+
+
+            function getRandomNumber(min, max) {
+                // FUNZIONE che genera un numero intero casuale tra min e max (inclusi).
+                return Math.floor(Math.random() * (max - min + 1)) + min;
+                // Math.random() genera [0,1); moltiplicando per (max-min+1) e floor si ottiene l'intervallo desiderato.
+            }
+
+
+            function initGame() {
+                // FUNZIONE per inizializzare o resettare lo stato del gioco.
+                secretNumber = getRandomNumber(MIN, MAX);
+                // Genera un nuovo numero segreto usando la funzione precedente.
+
+
+                attempts = 0;
+                // Resetta il contatore dei tentativi a 0.
+
+
+                guessesHistory = [];
+                // Svuota lo storico dei tentativi.
+
+
+                const message = document.getElementById("message");
+                // Ottiene il riferimento DOM all'elemento che mostra i messaggi.
+
+
+                const attemptsSpan = document.getElementById("attemptsCount");
+                // Ottiene il riferimento al <span> che mostra il conteggio dei tentativi.
+
+
+                const historyList = document.getElementById("historyList");
+                // Ottiene il riferimento alla lista che conterrà lo storico.
+
+
+                const input = document.getElementById("guessInput");
+                // Riferimento al campo di input dove si scrive il numero.
+
+
+                const guessBtn = document.getElementById("guessBtn");
+                // Riferimento al pulsante 'Prova'.
+
+
+                message.textContent = `Ho pensato a un numero tra ${MIN} e ${MAX}. Prova a indovinarlo!`;
+                // Imposta il testo iniziale del messaggio usando template literal per MIN e MAX.
+
+
+                attemptsSpan.textContent = attempts;
+                // Aggiorna l'interfaccia per mostrare 0 tentativi.
+
+
+                historyList.innerHTML = "";
+                // Svuota la lista dello storico visivo (HTML interno vuoto).
+
+
+                input.value = "";
+                // Svuota il valore del campo di input.
+
+
+                input.disabled = false;
+                // Assicura che il campo input sia abilitato (utile dopo una partita finita).
+
+
+                guessBtn.disabled = false;
+                // Riabilita il pulsante 'Prova'.
+
+
+                input.focus();
+                // Imposta il focus sul campo input per facilitare l'inserimento immediato.
+            }
+
+
+            function makeGuess() {
+                // FUNZIONE eseguita quando l'utente effettua un tentativo (clic o invio).
+                const input = document.getElementById("guessInput");
+                // Ottiene il riferimento al campo di input (di nuovo, locale alla funzione).
+
+
+                const message = document.getElementById("message");
+                // Riferimento al paragrafo dei messaggi.
+
+
+                const attemptsSpan = document.getElementById("attemptsCount");
+                // Riferimento al conteggio tentativi.
+
+
+                const historyList = document.getElementById("historyList");
+                // Riferimento alla lista dello storico.
+
+
+                const guess = Number(input.value);
+                // Legge il valore dall'input e lo converte in Number; se non è convertibile diventa NaN.
+
+
+                if (!guess || guess < MIN || guess > MAX) {
+                    // CONTROLLO: se guess è falsy (0, NaN, vuoto) o fuori range, mostra un messaggio di errore.
+                    message.textContent = `Inserisci un numero valido tra ${MIN} e ${MAX}.`;
+                    // Messaggio che informa l'utente di inserire un numero valido.
+                    return;
+                    // Esce dalla funzione senza consumare un tentativo.
+                }
+
+
+                attempts++;
+                // Incrementa il contatore dei tentativi perché l'input è valido.
+
+
+                attemptsSpan.textContent = attempts;
+                // Aggiorna visivamente il contatore nella pagina.
+
+
+                guessesHistory.push(guess);
+                // Aggiunge il tentativo corrente allo storico (array).
+
+
+                renderHistory(historyList);
+                // Chiama la funzione che rigenera la lista visibile dei tentativi.
+
+
+                if (guess === secretNumber) {
+                    // SE il numero inserito è esattamente uguale al numero segreto:
+                    message.textContent = `Bravo! Hai indovinato il numero ${secretNumber} in ${attempts} tentativi.`;
+                    // Messaggio di vittoria che comunica il numero e i tentativi impiegati.
+                    endGame();
+                    // Termina la partita disabilitando input e pulsante.
+                } else if (guess < secretNumber) {
+                    // SE il tentativo è minore del numero segreto:
+                    message.textContent = "Troppo basso. Riprova.";
+                    // Messaggio d'aiuto: il numero è più alto.
+                } else {
+                    // ALTRIMENTI (cioè guess > secretNumber):
+                    message.textContent = "Troppo alto. Riprova.";
+                    // Messaggio d'aiuto: il numero è più basso.
+                }
+
+
+                if (attempts >= MAX_ATTEMPTS && guess !== secretNumber) {
+                    // SE sono stati raggiunti o superati i tentativi massimi e non si è indovinato:
+                    message.textContent = `Hai esaurito i tentativi! Il numero era ${secretNumber}.`;
+                    // Messaggio di fine partita con rivelazione del numero segreto.
+                    endGame();
+                    // Disabilita input e pulsante per impedire altri tentativi.
+                }
+
+
+                input.value = "";
+                // Pulisce il campo di input dopo il tentativo.
+
+
+                input.focus();
+                // Riporta il focus sull'input per facilitare il prossimo tentativo.
+            }
+
+
+            function renderHistory(listElement) {
+                // FUNZIONE che aggiorna la lista HTML con tutti i tentativi salvati in guessesHistory.
+                listElement.innerHTML = "";
+                // Svuota la lista per ricostruirla da zero (semplice e sicuro).
+
+
+                for (let i = 0; i < guessesHistory.length; i++) {
+                    // CICLO su tutti gli elementi presenti in guessesHistory.
+                    const li = document.createElement("li");
+                    // Crea un nuovo elemento <li> per ogni tentativo.
+                    li.textContent = `Tentativo ${i + 1}: ${guessesHistory[i]}`;
+                    // Imposta il testo del <li> con il numero progressivo e il valore del tentativo.
+                    listElement.appendChild(li);
+                    // Aggiunge il <li> appena creato alla lista nel DOM.
+                }
+            }
+
+
+            function endGame() {
+                // FUNZIONE per bloccare l'interfaccia a fine partita (vittoria o sconfitta).
+                document.getElementById("guessInput").disabled = true;
+                // Disabilita il campo input per evitare ulteriori inserimenti.
+
+
+                document.getElementById("guessBtn").disabled = true;
+                // Disabilita il pulsante "Prova" per evitare ulteriori tentativi.
+            }
+
+
+            document.getElementById("guessBtn").addEventListener("click", makeGuess);
+            // AGGIUNGE un event listener al pulsante 'Prova' per chiamare makeGuess() al click.
+
+
+            document.getElementById("resetBtn").addEventListener("click", initGame);
+            // AGGIUNGE un event listener al pulsante 'Nuova partita' per re-inizializzare il gioco.
+
+
+            document.getElementById("guessInput").addEventListener("keyup", function (event) {
+                // AGGIUNGE un listener per l'evento keyup sull'input per intercettare il tasto Enter.
+                if (event.key === "Enter") {
+                    // SE il tasto premuto è Enter:
+                    makeGuess();
+                    // Chiama la funzione makeGuess() come se fosse stato cliccato il pulsante.
+                }
+            });
+
+
+            initGame();
+            // CHIAMA initGame() all'avvio dello script per generare il numero segreto e preparare l'interfaccia.
+
+
+        </script>
+        <!-- FINE SCRIPT. -->
+    </body>
+    <!-- FINE DEL BODY. -->
+</html>
+<!-- FINE DEL DOCUMENTO HTML. -->
+
+
+
